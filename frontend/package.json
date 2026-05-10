@@ -1,1 +1,7 @@
-
+cat > ~/three-tier-app/frontend/package.json << 'EOF'
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Three tier frontend"
+}
+EOF
