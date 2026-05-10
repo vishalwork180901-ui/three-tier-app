@@ -1,0 +1,49 @@
+# ── TIER 2: Backend API (Node.js) ────────────────
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 2                       # Run 2 copies for reliability
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: backend-app          # Image you built: docker build -t backend-app .
+        imagePullPolicy: Never      # Use local image (not DockerHub) — for Minikube
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_HOST
+          value: "postgres-service" # K8s service name of the database
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "mystore"
+        - name: DB_USER
+          value: "postgres"
+        - name: DB_PASSWORD
+          value: "mypassword"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  type: NodePort                    # Accessible from outside the cluster
+  selector:
+    app: backend
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30050                 # Access at: minikube_ip:30050
