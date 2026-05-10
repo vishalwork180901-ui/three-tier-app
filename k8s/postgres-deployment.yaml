@@ -1,0 +1,45 @@
+# ── TIER 3: PostgreSQL Database ──────────────────
+# This runs the database inside Kubernetes
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15          # Official PostgreSQL image from DockerHub
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "mystore"          # Database name
+        - name: POSTGRES_USER
+          value: "postgres"         # DB username
+        - name: POSTGRES_PASSWORD
+          value: "mypassword"       # DB password (use K8s Secret in production!)
+
+---
+# Service so other pods can reach the database
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service            # Backend uses this name as DB_HOST
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP                   # Only reachable inside the cluster
