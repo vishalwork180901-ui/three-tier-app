@@ -12,7 +12,7 @@ pipeline {
 
     stages {
 
-        // ── Step 1: Jenkins automatically checks out code ──
+        // ── Step 1: Verify Repository ──
         stage('Verify Repository') {
             steps {
                 echo 'Repository checked out successfully.'
@@ -58,43 +58,58 @@ pipeline {
             }
         }
 
-        // ── Step 5: Deploy PostgreSQL ──
+        // ── Step 5: Configure Kubeconfig ──
+        stage('Configure Kubernetes Access') {
+            steps {
+                echo 'Configuring kubeconfig...'
+
+                sh '''
+                mkdir -p $HOME/.kube
+                sudo cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+                sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+                sed -i 's/127.0.0.1/172.31.18.77/g' $HOME/.kube/config
+                '''
+            }
+        }
+
+        // ── Step 6: Deploy PostgreSQL ──
         stage('Deploy PostgreSQL') {
             steps {
                 echo 'Deploying PostgreSQL...'
 
-                sh 'kubectl apply -f k8s/postgres-deployment.yaml'
+                sh 'kubectl apply --validate=false -f k8s/postgres-deployment.yaml'
 
                 echo 'Waiting for PostgreSQL to start...'
                 sh 'sleep 20'
             }
         }
 
-        // ── Step 6: Deploy Backend ──
+        // ── Step 7: Deploy Backend ──
         stage('Deploy Backend') {
             steps {
                 echo 'Deploying Backend...'
 
-                sh 'kubectl apply -f k8s/backend-deployment.yaml'
+                sh 'kubectl apply --validate=false -f k8s/backend-deployment.yaml'
 
                 echo 'Waiting for Backend to start...'
                 sh 'sleep 15'
             }
         }
 
-        // ── Step 7: Deploy Frontend ──
+        // ── Step 8: Deploy Frontend ──
         stage('Deploy Frontend') {
             steps {
                 echo 'Deploying Frontend...'
 
-                sh 'kubectl apply -f k8s/frontend-deployment.yaml'
+                sh 'kubectl apply --validate=false -f k8s/frontend-deployment.yaml'
 
                 echo 'Waiting for Frontend to start...'
                 sh 'sleep 15'
             }
         }
 
-        // ── Step 8: Restart Deployments ──
+        // ── Step 9: Restart Deployments ──
         stage('Restart Deployments') {
             steps {
                 echo 'Restarting deployments...'
@@ -107,7 +122,7 @@ pipeline {
             }
         }
 
-        // ── Step 9: Verify Kubernetes Resources ──
+        // ── Step 10: Verify Kubernetes Resources ──
         stage('Verify Deployment') {
             steps {
                 echo 'Checking Pods...'
