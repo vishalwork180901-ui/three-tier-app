@@ -31,7 +31,7 @@
 </head>
 <body>
   <header>
-    <h1>📦 Product Store</h1>
+    <h1>📦 Product Store 2</h1>
     <p>Deployed on Kubernetes — Three-Tier Architecture</p>
   </header>
   <main>
@@ -60,7 +60,7 @@
   <script>
     // In Kubernetes, backend is accessed via the backend-service name
     // Change this to your minikube IP + nodePort if accessing from outside cluster
-    const API = 'http://localhost:30050/api';
+    const API = 'http://13.61.248.143:30050/api';
 
     async function loadProducts() {
       const list = document.getElementById('list');
